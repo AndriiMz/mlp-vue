@@ -25,6 +25,7 @@ function MultilayerPerceptron(inputDimension, outputDimension) {
 	layers.push(new Layer(this.inputDimension));
 }
 
+MultilayerPerceptron.prototype.layers = layers;
 
 
 MultilayerPerceptron.prototype.addHiddenLayer = function(layerDimension) {
