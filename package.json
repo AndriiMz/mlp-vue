@@ -1,11 +1,8 @@
 {
-  "name": "mlp",
+  "name": "mlp-vue",
   "version": "1.1.0",
   "description": "multilayer perceptron which can be trained using the backpropagation algorithm",
-  "author": {
-    "name": "Ulf Biallas",
-    "url": "https://github.com/ulfbiallas"
-  },
+  "author": "Ulf Biallas (https://github.com/ulfbiallas)",
   "scripts": {
     "test": "mocha"
   },
@@ -23,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ulfbiallas/npm-mlp.git"
+    "url": "git+https://github.com/ulfbiallas/npm-mlp.git"
   },
   "bugs": {
     "url": "https://github.com/ulfbiallas/npm-mlp/issues"
@@ -38,5 +35,10 @@
     "chai": "^3.0.0",
     "mocha": "^2.1.0",
     "sinon": "^1.13.0"
+  },
+  "homepage": "https://github.com/ulfbiallas/npm-mlp#readme",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
   }
 }
