@@ -1,4 +1,4 @@
-function Layer(dimension) {
+function Layer(dimension, type) {
 
   if ( !(typeof dimension == 'number') ) {
     throw new TypeError( 'Layer: dimension has to be an integer!' );
@@ -9,6 +9,7 @@ function Layer(dimension) {
   }
 
   this.dimension = dimension;
+  this.type = type;
   this.input = new Array();
   this.output = new Array();
   this.error = new Array();

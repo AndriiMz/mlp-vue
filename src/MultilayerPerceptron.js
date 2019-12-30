@@ -10,7 +10,6 @@ var layerCount = 1;
 
 
 function MultilayerPerceptron(inputDimension, outputDimension) {
-
 	if ( !(typeof inputDimension == 'number' && inputDimension % 1 == 0 && inputDimension > 0) ) {
 		throw new TypeError( 'MultilayerPerceptron: inputDimension has to be a positive integer!' );
 	}
@@ -28,13 +27,13 @@ function MultilayerPerceptron(inputDimension, outputDimension) {
 MultilayerPerceptron.prototype.layers = layers;
 
 
-MultilayerPerceptron.prototype.addHiddenLayer = function(layerDimension) {
+MultilayerPerceptron.prototype.addHiddenLayer = function(layerDimension, type) {
 
 	if ( !(typeof layerDimension == 'number' && layerDimension % 1 == 0 && layerDimension > 0) ) {
 		throw new TypeError( 'MultilayerPerceptron::addHiddenLayer: layerDimension has to be a positive integer!' );
 	}
 
-	layers.push(new Layer(layerDimension));
+	layers.push(new Layer(layerDimension, type));
 	layerCount++;
 }
 
@@ -204,8 +203,12 @@ function calcLayerOutput(layerId) {
 		throw new TypeError( 'MultilayerPerceptron::calcLayerOutput: layerId has to be a non-negative integer!' );
 	}
 
-	for (var i=0; i<layers[layerId].dimension; ++i) {
-		layers[layerId].output[i] = psi( layers[layerId].input[i] );
+	if (layers[layerId].type === 'sfmx') {
+		layers[layerId].output = sfmx(layers[layerId].input);
+	} else {
+		for (var i = 0; i < layers[layerId].dimension; ++i) {
+			layers[layerId].output[i] = psi(layers[layerId].input[i]);
+		}
 	}
 }
 
@@ -218,12 +221,25 @@ function calcLayerError(layerId) {
 	}
 
 	var weightMatrix = weights[layerId];
-	for (var i=0; i<layers[layerId].dimension; ++i) {
-		var sum = 0;
-		for (var j=0; j<layers[layerId+1].dimension; ++j) {
-			sum += weightMatrix.w[j * weightMatrix.inputDimension + i] * layers[layerId+1].error[j];
+	if (layers[layerId].type === 'sfmx') {
+		var dsx = dsfmxdx(layers[layerId].input);
+		for (var i = 0; i < dsx.length; i++) {
+			var sum = 0;
+			for (var j = 0; j < layers[layerId + 1].dimension; ++j) {
+				sum += weightMatrix.w[j * weightMatrix.inputDimension + i] * layers[layerId + 1].error[j];
+			}
+
+			layers[layerId].error[i] = dsx[i] * sum;
 		}
-		layers[layerId].error[i] = dpsidx( layers[layerId].input[i] ) * sum;
+	} else {
+		for (var i = 0; i < layers[layerId].dimension; ++i) {
+			var sum = 0;
+			for (var j = 0; j < layers[layerId + 1].dimension; ++j) {
+				sum += weightMatrix.w[j * weightMatrix.inputDimension + i] * layers[layerId + 1].error[j];
+			}
+
+			layers[layerId].error[i] = dpsidx(layers[layerId].input[i]) * sum;
+		}
 	}
 }
 
@@ -260,6 +276,48 @@ function psi(x) {
 	return 1.0 / (1.0+Math.exp(-a*x));
 }
 
+
+function sfmx(arr) { //Softmax
+	var t = arr.map(
+		function(value, index) {
+			return Math.exp(value) /
+				arr.map(
+					function(y){
+						return Math.exp(y);
+					}
+				).reduce(
+					function(a,b){ return a+b; }
+				)
+		}
+	);
+
+	return t;
+}
+
+function dsfmxdx(s) {
+	var jacobian_m = [];
+	for (var i = 0; i < s.length; i++) {
+		jacobian_m.push([]);
+		for (var j = 0; j < s.length; j++) {
+			if (i === j) {
+				jacobian_m[i].push(s[i] * (1-s[i]));
+			} else {
+				jacobian_m[i].push(-s[i]*s[j]);
+			}
+		}
+	}
+
+	var jac = [];
+	for(var i = 0; i < jacobian_m.length; i++) {
+		for (var j = 0; j < jacobian_m[i].length; j++) {
+			if (i === j) {
+				jac.push(jacobian_m[i][j]);
+			}
+		}
+	}
+
+	return jac;
+}
 
 
 function dpsidx(x) {
